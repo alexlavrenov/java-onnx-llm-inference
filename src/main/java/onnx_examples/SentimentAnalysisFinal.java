@@ -9,6 +9,7 @@ import ai.onnxruntime.OrtSession;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Map;
 
 public class SentimentAnalysisFinal {
@@ -25,11 +26,14 @@ public class SentimentAnalysisFinal {
                 "I hate this so much!"
         };
 
-        Encoding encoding = tokenizer.encode(texts);
+        Encoding[] encodings = tokenizer.batchEncode(texts);
 
-        long[][] inputIdsData = {encoding.getIds()};
-        long[][] attentionMaskData = {encoding.getAttentionMask()};
-
+        long[][] inputIdsData = Arrays.stream(encodings)
+                .map(Encoding::getIds)
+                .toArray(long[][]::new);
+        long[][] attentionMaskData = Arrays.stream(encodings)
+                .map(Encoding::getAttentionMask)
+                .toArray(long[][]::new);
 
         // Perform inference
         try (OnnxTensor inputIdsTensor = OnnxTensor.createTensor(env, inputIdsData);
